@@ -1,0 +1,74 @@
+{
+  "text": "Push alarm message",
+  "blocks": [
+    {
+      "type": "header",
+      "text": "{생성자가 입력한 투표명}20자이하",
+      "style": "blue"
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "text",
+      "text": "1) {선택지_1}",
+      "markdown": true
+    },
+    {
+      "type": "text",
+      "text": "2) {선택지_2}",
+      "markdown": true
+    },
+    {
+      "type": "text",
+      "text": "3) {선택지_3}",
+      "markdown": true
+    },
+    {
+      "type": "text",
+      "text": "4) {선택지_4}",
+      "markdown": true
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "description",
+      "term": "작성자",
+      "content": {
+        "type": "text",
+        "text": "{투표작성자}",
+        "markdown": false
+      },
+      "accent": true
+    },
+    {
+      "type": "description",
+      "term": "시작일",
+      "content": {
+        "type": "text",
+        "text": "{투표시작시간}",
+        "markdown": false
+      },
+      "accent": true
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "action",
+      "elements": [
+        {
+          "type": "button",
+          "text": "투표하기",
+          "style": "primary"
+        },
+        {
+          "type": "button",
+          "text": "투표 제어",
+          "style": "default"
+        }
+      ]
+    }
+  ]
+}

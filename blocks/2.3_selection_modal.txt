@@ -1,0 +1,29 @@
+{
+  "title": "투표하기",
+  "accept": "확인",
+  "decline": "취소",
+  "value": "{request_modal의 응답으로 전송한 value 값}",
+  "blocks": [
+    {
+      "type": "label",
+      "text": "선택지를 고르세요. (추후 구현에 따라 선택가능한 갯수만큼의 select 블록을 제공.})",
+      "markdown": true
+    },
+    {
+      "type": "select",
+      "name": "select_name1",
+      "options": [
+        {
+          "text": "1) {선택지_1}",
+          "value": "1"
+        },
+        {
+          "text": "2) {선택지_2}",
+          "value": "2"
+        }
+      ],
+      "required": true,
+      "placeholder": "선택지를 골라주세요"
+    }
+  ]
+}
