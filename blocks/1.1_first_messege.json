@@ -1,0 +1,17 @@
+{
+  "text": "Push alarm message",
+  "blocks": [
+    {
+      "type": "header",
+      "text": "투표를 만드려면 버튼을 누르세요",
+      "style": "blue"
+    },
+    {
+      "type": "button",
+      "text": "투표 생성하기",
+      "style": "primary",
+      "action_type": "call_modal",
+      "value": "create_vote"
+    }
+  ]
+}

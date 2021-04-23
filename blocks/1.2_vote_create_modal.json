@@ -1,0 +1,49 @@
+{
+  "title": "투표 만들기",
+  "accept": "확인",
+  "decline": "취소",
+  "value": "create_vote",
+  "blocks": [
+    {
+      "type": "input",
+      "name": "title",
+      "required": true,
+      "placeholder": "투표제목을 입력하세요 (필수)"
+    },
+    {
+      "type": "label",
+      "text": "선택지를 입력하세요",
+      "markdown": true
+    },
+    {
+      "type": "input",
+      "name": "selection_1",
+      "required": true,
+      "placeholder": "내용을 입력해주세요 (필수)"
+    },
+    {
+      "type": "input",
+      "name": "selection_2",
+      "required": true,
+      "placeholder": "내용을 입력해주세요 (필수)"
+    },
+    {
+      "type": "input",
+      "name": "selection_3",
+      "required": false,
+      "placeholder": "내용을 입력해주세요"
+    },
+    {
+      "type": "input",
+      "name": "selection_4",
+      "required": false,
+      "placeholder": "내용을 입력해주세요"
+    },
+    {
+      "type": "input",
+      "name": "selection_5",
+      "required": false,
+      "placeholder": "내용을 입력해주세요"
+    }
+  ]
+}
