@@ -1,0 +1,47 @@
+{
+  "text": "{투표명} 의 투표결과가 도착했습니다.",
+  "blocks": [
+    {
+      "type": "header",
+      "text": "투표 결과",
+      "style": "blue"
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "text",
+      "text": "1) {선택지_1} {} 표",
+      "markdown": true
+    },
+    {
+      "type": "text",
+      "text": "2) {선택지_2} {} 표",
+      "markdown": true
+    },
+    {
+      "type": "text",
+      "text": "3) {선택지_3} {} 표",
+      "markdown": true
+    },
+    {
+      "type": "text",
+      "text": "4) {선택지_4} {} 표",
+      "markdown": true
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "description",
+      "term": "종료시간",
+      "content": {
+        "type": "text",
+        "text": "{투표마감시간}",
+        "markdown": false
+      },
+      "accent": true
+    }     
+    
+  ]
+}
