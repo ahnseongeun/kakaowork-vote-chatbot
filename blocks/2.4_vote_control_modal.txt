@@ -1,0 +1,29 @@
+{
+  "title": "투표 제어",
+  "accept": "확인",
+  "decline": "취소",
+  "value": "{request_modal의 응답으로 전송한 value 값}",
+  "blocks": [    
+    {
+      "type": "select",
+      "name": "select_name1",
+      "options": [
+        {
+          "text": "투표현황 확인하기",
+          "value": "1"
+        },
+        {
+          "text": "투표 끝내기",
+          "value": "2"
+        }
+      ],
+      "required": true,
+      "placeholder": "옵션을 선택해주세요"
+    },
+    {
+      "type": "label",
+      "text": "<p style=\"color:Tomato\">투표 끝내기는 투표 생성자만 가능합니다.</p>",
+      "markdown": true
+    }
+  ]
+}
