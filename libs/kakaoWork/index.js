@@ -23,6 +23,17 @@ exports.openConversations = async ({ userId }) => {
   return res.data.conversation;
 };
 
+// 그룹 채팅방 생성
+// Usage : openGroupConversations({userIds:[투표 생성자 userid]})
+exports.openGroupConversations = async ({ userIds }) => {
+  const data = {
+    user_ids: userIds,
+  };
+  const res = await kakaoInstance.post('/v1/conversations.open', data);
+  return res.data.conversation;
+};
+//
+
 // 메시지 전송 (3)
 exports.sendMessage = async ({ conversationId, text, blocks }) => {
   const data = {
