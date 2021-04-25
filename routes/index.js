@@ -3,12 +3,14 @@ const express = require('express');
 const router = express.Router();
 
 const libKakaoWork = require('../libs/kakaoWork');
+const fs = require('fs');
 // 1_2 투표만들기 input 저장 변수
 var vote_message = {}
 var vote_actions = {}
 var vote_actions_time = {}
 var vote_value = {}
 var total_people = 0;
+let block = fs.readFileSync(__dirname + '/../blocks/1.1_first_messege.json', 'utf8');
 router.get('/', async (req, res, next) => {
   // 유저 목록 검색 (1)
   const users = await libKakaoWork.getUserList();
@@ -23,29 +25,17 @@ router.get('/', async (req, res, next) => {
 	total_people = total_people - 1;
 	console.log(total_people);
   // 생성된 채팅방에 메세지 전송 (3)
-  // 1.1
-  const messages = await Promise.all([
-    conversations.map((conversation) =>
-      libKakaoWork.sendMessage({
-        conversationId: conversation.id,
-        text: "투표하세요",
-		blocks: [
-	      {
-			type: "header",
-			text: "투표를 만드려면 버튼을 누르세요",
-			style: "blue"
-		  },
-		  {
-			type: "button",
-			text: "투표 생성하기",
-			style: "primary",
-			action_type: "call_modal",
-			value: "create_vote"
-		  },
-		],
-      })
-    ),
-  ]);
+// 1.1
+  const messages = await Promise.all(
+	conversations.map((conversation) =>{
+	  let obj = Object.assign({}, JSON.parse(block));
+	  obj.conversationId = conversation.id;
+	  return obj;
+  })
+).then(objs=>objs.map(obj=>{
+	  console.log(obj);
+	  libKakaoWork.sendMessage(obj);
+  }))
 
   // 응답값은 자유롭게 작성하셔도 됩니다.
   res.json({
