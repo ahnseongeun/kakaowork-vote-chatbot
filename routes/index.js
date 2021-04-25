@@ -8,6 +8,7 @@ var vote_message = {}
 var vote_actions = {}
 var vote_actions_time = {}
 var vote_value = {}
+var total_people = 0;
 router.get('/', async (req, res, next) => {
   // 유저 목록 검색 (1)
   const users = await libKakaoWork.getUserList();
@@ -16,7 +17,11 @@ router.get('/', async (req, res, next) => {
   const conversations = await Promise.all(
     users.map((user) => libKakaoWork.openConversations({ userId: user.id }))
   );
-
+	total_people = await Promise.all(
+		conversations.map((con) => con.users_count)
+	);
+	total_people = total_people - 1;
+	console.log(total_people);
   // 생성된 채팅방에 메세지 전송 (3)
   // 1.1
   const messages = await Promise.all([
@@ -188,7 +193,7 @@ router.post('/request', async (req, res, next) => {
 // routes/index.js
 router.post('/callback', async (req, res, next) => {
   const { message, actions, action_time, value } = req.body; // 설문조사 결과 확인 (2)
-  
+  console.log(actions);
   switch (value) {
 	// 2.1
 	case 'create_vote_modal':
@@ -342,7 +347,7 @@ router.post('/callback', async (req, res, next) => {
 						  term: "참여율",
 						  content: {
 							type: "text",
-							text: "{} of {}",
+							text: "{} of "+total_people,
 							markdown: false
 						  },
 						  accent: true
