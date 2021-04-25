@@ -8,6 +8,7 @@ var vote_message = {}
 var vote_actions = {}
 var vote_actions_time = {}
 var vote_value = {}
+var total_people = 0;
 router.get('/', async (req, res, next) => {
   // 유저 목록 검색 (1)
   const users = await libKakaoWork.getUserList();
@@ -16,7 +17,11 @@ router.get('/', async (req, res, next) => {
   const conversations = await Promise.all(
     users.map((user) => libKakaoWork.openConversations({ userId: user.id }))
   );
-
+	total_people = await Promise.all(
+		conversations.map((con) => con.users_count)
+	);
+	total_people = total_people - 1;
+	console.log(total_people);
   // 생성된 채팅방에 메세지 전송 (3)
   // 1.1
   const messages = await Promise.all([
@@ -106,14 +111,89 @@ router.post('/request', async (req, res, next) => {
 		  ]
         },
       });
-			break;
-		default:
+		//2.3  
+	case 'vote_selection_modal':
+      	return res.json({
+			view: {
+			  title: "투표하기",
+			  accept: "확인",
+			  decline: "취소",
+			  value: "vote_selection",
+			  blocks: [
+				{
+				  type: "label",
+				  text: "선택지를 고르세요",
+				  markdown: true
+				},
+				{
+				  type: "select",
+				  name: "select_name",
+				  options: [
+					{
+					  text: vote_actions.selection_1,
+					  value: "1"
+					},
+					{
+					  text: vote_actions.selection_2,
+					  value: "2"
+					},
+					{
+					  text: vote_actions.selection_3,
+					  value: "3"
+					},
+					{
+					  text: vote_actions.selection_4,
+					  value: "4"
+					}
+				  ],
+				  required: true,
+				  placeholder: "선택지를 골라주세요"
+				}
+			  ]
+			}
+
+		});
+		//2.4  
+	case 'vote_control_modal':
+      	return res.json({
+			view:{
+			  title: "투표 제어",
+			  accept: "확인",
+			  decline: "취소",
+			  value: "vote_control",
+			  blocks: [    
+				{
+				  type: "select",
+				  name: "select",
+				  options: [
+					{
+					  text: "투표현황 확인하기",
+					  value: "vote_status"
+					},
+					{
+					  text: "투표 끝내기",
+					  value: "result_message"
+					}
+				  ],
+				  required: true,
+				  placeholder: "옵션을 선택해주세요"
+				},
+				{
+				  type: "label",
+				  text: "<p style=\"color:Tomato\">투표 끝내기는 투표 생성자만 가능합니다.</p>",
+				  markdown: true
+				}
+			  ]
+			}
+		});
+	break;
+	default:
   }
 });
 // routes/index.js
 router.post('/callback', async (req, res, next) => {
   const { message, actions, action_time, value } = req.body; // 설문조사 결과 확인 (2)
-  
+  console.log(actions);
   switch (value) {
 	// 2.1
 	case 'create_vote_modal':
@@ -141,6 +221,7 @@ router.post('/callback', async (req, res, next) => {
 			  }
 			]	
 		})
+		break;
 	// 2.2
 	case "vote_start":
 		  await libKakaoWork.sendMessage({
@@ -222,6 +303,109 @@ router.post('/callback', async (req, res, next) => {
 				}
 			  ]
 		  })
+	case "vote_control":
+		  switch (actions.select) {
+			  //2.5
+			  case "vote_status":
+				  await libKakaoWork.sendMessage({
+					  conversationId: message.conversation_id,
+					  text: vote_actions.votetitle + " 투표의 중간 집계가 도착하였습니다.",
+					  blocks: [
+						{
+						  type: "header",
+						  text: vote_actions.votetitle + "중간 집계",
+						  style: "blue"
+						},
+						{
+						  type: "divider"
+						},
+						{
+						  type: "text",
+						  text: "1) " +vote_actions.selection_1+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "text",
+						  text: "2) " +vote_actions.selection_2+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "text",
+						  text: "3) " +vote_actions.selection_3+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "text",
+						  text: "4) " +vote_actions.selection_4+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "divider"
+						},
+						{
+						  type: "description",
+						  term: "참여율",
+						  content: {
+							type: "text",
+							text: "{} of "+total_people,
+							markdown: false
+						  },
+						  accent: true
+						}
+					  ]
+					  
+				  })
+				  break;
+			  //3.1
+			  case "result_message":
+				  await libKakaoWork.sendMessage({
+					  conversationId: message.conversation_id,
+					  text: "{"+vote_actions.votetitle+"}"+"의 투표결과가 도착했습니다.",
+					  blocks: [
+						{
+						  type: "header",
+						  text: "{"+vote_actions.votetitle+"}"+"투표 결과",
+						  style: "blue"
+						},
+						{
+						  type: "divider"
+						},
+						{
+						  type: "text",
+						  text: "1) " +vote_actions.selection_1+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "text",
+						  text: "2) " +vote_actions.selection_2+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "text",
+						  text: "3) " +vote_actions.selection_3+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "text",
+						  text: "4) " +vote_actions.selection_4+" {} 표",
+						  markdown: true
+						},
+						{
+						  type: "divider"
+						},
+						{
+						  type: "description",
+						  term: "종료시간",
+						  content: {
+							type: "text",
+							text: action_time,
+							markdown: false
+						  },
+						  accent: true
+						}     
+					  ]
+				  })
+		  }	
     break;
     default:
   }
