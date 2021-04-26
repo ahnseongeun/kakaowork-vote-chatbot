@@ -1,5 +1,5 @@
 {
-  "text": "Push alarm message",
+  "text": "투표 시작",
   "blocks": [
     {
       "type": "text",
@@ -9,7 +9,8 @@
     {
       "type": "button",
       "text": "투표 시작",
-      "style": "primary"
+      "style": "primary",
+      "value": "request_start_vote"
     }
   ]
 }

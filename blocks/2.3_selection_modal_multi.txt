@@ -1,0 +1,77 @@
+{
+  "title": "투표하기",
+  "accept": "확인",
+  "decline": "취소",
+  "value": "callback_selection_vote_modal_multi",
+  "blocks": [
+    {
+      "type": "label",
+      "text": "선택지를 고르세요. (추후 구현에 따라 선택가능한 갯수만큼의 select 블록을 제공.})",
+      "markdown": true
+    },
+    {
+      "type": "select",
+      "name": "selection_1",
+      "options": [
+        {
+          "text": "찬성",
+          "value": "accept"
+        },
+        {
+          "text": "반대",
+          "value": "decline"
+        }
+      ],
+      "required": true,
+      "placeholder": "1번 선택지 이름"
+    },
+    {
+      "type": "select",
+      "name": "selection_2",
+      "options": [
+        {
+          "text": "찬성",
+          "value": "accept"
+        },
+        {
+          "text": "반대",
+          "value": "decline"
+        }
+      ],
+      "required": true,
+      "placeholder": "2번 선택지 이름"
+    },
+    {
+      "type": "select",
+      "name": "selection_3",
+      "options": [
+        {
+          "text": "찬성",
+          "value": "accept"
+        },
+        {
+          "text": "반대",
+          "value": "decline"
+        }
+      ],
+      "required": true,
+      "placeholder": "3번 선택지 이름"
+    },
+    {
+      "type": "select",
+      "name": "selection_4",
+      "options": [
+        {
+          "text": "찬성",
+          "value": "accept"
+        },
+        {
+          "text": "반대",
+          "value": "decline"
+        }
+      ],
+      "required": true,
+      "placeholder": "4번 선택지 이름"
+    }
+  ]
+}

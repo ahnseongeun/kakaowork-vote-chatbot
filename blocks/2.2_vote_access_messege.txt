@@ -61,12 +61,14 @@
         {
           "type": "button",
           "text": "투표하기",
-          "style": "primary"
+          "style": "primary",
+          "value": "request_selection_modal"
         },
         {
           "type": "button",
           "text": "투표 제어",
-          "style": "default"
+          "style": "default",
+          "value": "request_control_modal"
         }
       ]
     }

@@ -1,46 +1,33 @@
 {
-  "text": "{투표명} 투표의 중간 집계가 도착하였습니다.",
+  "title": "투표현황",
+  "accept": "확인",
+  "decline": "취소",
+  "value": "callback_check_vote_modal",
   "blocks": [
     {
-      "type": "header",
-      "text": "중간 집계",
-      "style": "blue"
-    },
-    {
-      "type": "divider"
-    },
-    {
-      "type": "text",
-      "text": "1) {선택지_1} {} 표",
+      "type": "label",
+      "text": "1) 1번 선택지이름 {}표",
       "markdown": true
     },
     {
-      "type": "text",
-      "text": "2) {선택지_2} {} 표",
+      "type": "label",
+      "text": "2) 2번 선택지이름 {}표",
       "markdown": true
     },
     {
-      "type": "text",
-      "text": "3) {선택지_3} {} 표",
+      "type": "label",
+      "text": "3) 3번 선택지이름 {}표",
       "markdown": true
     },
     {
-      "type": "text",
-      "text": "4) {선택지_4} {} 표",
+      "type": "label",
+      "text": "4) 4번 선택지이름 {}표",
       "markdown": true
     },
     {
-      "type": "divider"
-    },
-    {
-      "type": "description",
-      "term": "참여율",
-      "content": {
-        "type": "text",
-        "text": "{} of {}",
-        "markdown": false
-      },
-      "accent": true
+      "type": "label",
+      "text": "투표율 : {} of {}",
+      "markdown": true
     }
   ]
 }
