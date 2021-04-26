@@ -11,7 +11,7 @@
       "text": "투표 생성하기",
       "style": "primary",
       "action_type": "call_modal",
-      "value": "create_vote"
+      "value": "request_create_vote_modal"
     }
   ]
 }

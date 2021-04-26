@@ -2,7 +2,7 @@
   "title": "투표하기",
   "accept": "확인",
   "decline": "취소",
-  "value": "{request_modal의 응답으로 전송한 value 값}",
+  "value": "callback_selection_vote_modal_single",
   "blocks": [
     {
       "type": "label",
@@ -11,7 +11,7 @@
     },
     {
       "type": "select",
-      "name": "select_name1",
+      "name": "selection",
       "options": [
         {
           "text": "1) {선택지_1}",

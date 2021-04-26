@@ -2,7 +2,7 @@
   "title": "투표 만들기",
   "accept": "확인",
   "decline": "취소",
-  "value": "create_vote",
+  "value": "callback_create_vote_modal",
   "blocks": [
     {
       "type": "input",
