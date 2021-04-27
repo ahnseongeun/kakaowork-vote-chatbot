@@ -1,405 +1,277 @@
 // routes/index.js
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 
-const libKakaoWork = require('../libs/kakaoWork');
-const fs = require('fs');
-// 1_2 투표만들기 input 저장 변수
-var vote_message = {}
-var vote_actions = {}
-var vote_actions_time = {}
-var vote_value = {}
-var total_people = 0;
-let block = fs.readFileSync(__dirname + '/../blocks/1.1_first_messege.json', 'utf8');
-router.get('/', async (req, res, next) => {
-  // 유저 목록 검색 (1)
-  const users = await libKakaoWork.getUserList();
+const libKakaoWork = require('../libs/kakaoWork')
+// messages
+const first_message = require('./messages/first_message')
+const create_vote_callback = require('./messages/create_vote_callback')
+const start_vote = require('./messages/start_vote.js')
+const plz_vote = require('./messages/plz_vote.js')
+const end_vote = require('./messages/end_vote.js')
+// modals
+const alert_check_vote = require('./modals/alert_check_vote')
+const alert_create_vote = require('./modals/alert_create_vote')
+const create_vote = require('./modals/create_vote')
+const create_vote_choice = require('./modals/create_vote_choice')
+const go_vote = require('./modals/go_vote')
+const check_vote = require('./modals/check_vote')
+const check_vote_admin = require('./modals/check_vote_admin')
+// db
+const sqlite3 = require('sqlite3').verbose()
+const query = require('../db/query')
 
-  // 검색된 모든 유저에게 각각 채팅방 생성 (2)
-  const conversations = await Promise.all(
-    users.map((user) => libKakaoWork.openConversations({ userId: user.id }))
-  );
-	total_people = await Promise.all(
-		conversations.map((con) => con.users_count)
-	);
-	total_people = total_people - 1;
-	console.log(total_people);
-  // 생성된 채팅방에 메세지 전송 (3)
-// 1.1
-  const messages = await Promise.all(
-	conversations.map((conversation) =>{
-	  let obj = Object.assign({}, JSON.parse(block));
-	  obj.conversationId = conversation.id;
-	  return obj;
-  })
-).then(objs=>objs.map(obj=>{
-	  console.log(obj);
-	  libKakaoWork.sendMessage(obj);
-  }))
-
-  // 응답값은 자유롭게 작성하셔도 됩니다.
-  res.json({
-    users,
-    conversations,
-    messages,
-  });
-});
-router.post('/request', async (req, res, next) => {
-  const { message, value } = req.body;
-
-  switch (value) {
-	// 1.2
-    case 'create_vote':
-      return res.json({
-        view: {
-		  title: "투표 만들기",
-		  accept: "확인",
-		  decline: "취소",
-		  value: "create_vote_modal",
-		  blocks: [
-			{
-			  type: "input",
-			  name: "votetitle",
-			  required: true,
-			  placeholder: "투표제목을 입력하세요 (필수)"
-			},
-			{
-			  type: "label",
-			  text: "선택지를 입력하세요",
-			  markdown: true
-			},
-			{
-			  type: "input",
-			  name: "selection_1",
-			  required: true,
-			  placeholder: "내용을 입력해주세요 (필수)"
-			},
-			{
-			  type: "input",
-			  name: "selection_2",
-			  required: true,
-			  placeholder: "내용을 입력해주세요 (필수)"
-			},
-			{
-			  type: "input",
-			  name: "selection_3",
-			  required: false,
-			  placeholder: "내용을 입력해주세요"
-			},
-			{
-			  type: "input",
-			  name: "selection_4",
-			  required: false,
-			  placeholder: "내용을 입력해주세요"
-			},
-			{
-			  type: "input",
-			  name: "selection_5",
-			  required: false,
-			  placeholder: "내용을 입력해주세요"
-			}
-		  ]
-        },
-      });
-		//2.3  
-	case 'vote_selection_modal':
-      	return res.json({
-			view: {
-			  title: "투표하기",
-			  accept: "확인",
-			  decline: "취소",
-			  value: "vote_selection",
-			  blocks: [
-				{
-				  type: "label",
-				  text: "선택지를 고르세요",
-				  markdown: true
-				},
-				{
-				  type: "select",
-				  name: "select_name",
-				  options: [
-					{
-					  text: vote_actions.selection_1,
-					  value: "1"
-					},
-					{
-					  text: vote_actions.selection_2,
-					  value: "2"
-					},
-					{
-					  text: vote_actions.selection_3,
-					  value: "3"
-					},
-					{
-					  text: vote_actions.selection_4,
-					  value: "4"
-					}
-				  ],
-				  required: true,
-				  placeholder: "선택지를 골라주세요"
-				}
-			  ]
-			}
-
-		});
-		//2.4  
-	case 'vote_control_modal':
-      	return res.json({
-			view:{
-			  title: "투표 제어",
-			  accept: "확인",
-			  decline: "취소",
-			  value: "vote_control",
-			  blocks: [    
-				{
-				  type: "select",
-				  name: "select",
-				  options: [
-					{
-					  text: "투표현황 확인하기",
-					  value: "vote_status"
-					},
-					{
-					  text: "투표 끝내기",
-					  value: "result_message"
-					}
-				  ],
-				  required: true,
-				  placeholder: "옵션을 선택해주세요"
-				},
-				{
-				  type: "label",
-				  text: "<p style=\"color:Tomato\">투표 끝내기는 투표 생성자만 가능합니다.</p>",
-				  markdown: true
-				}
-			  ]
-			}
-		});
-	break;
-	default:
+const force_init = false
+const db = new sqlite3.Database('./db/my.db', sqlite3.OPEN_READWRITE, (err) => {
+  if (err) {
+    console.error(err.message)
+  } else {
+    console.log('Connected to the mydb database.')
   }
-});
+})
+const foreign_keys = 'PRAGMA foreign_keys = ON'
+db.serialize(() => {
+// init
+  db.each(foreign_keys)
+})
+if (force_init) {
+  db.serialize(() => {
+    // drop and create table
+    db.each(query.dropUser)
+    db.each(query.dropVote)
+    db.each(query.dropVoteUser)
+    db.each(query.dropVoteDetail)
+  })
+}
+db.serialize(() => {
+  db.each(query.createUser)
+  db.each(query.createVote)
+  db.each(query.createVoteUser)
+  db.each(query.createVoteDetail)
+})
+
+// 디비가 없으면 생성 (force_init == true) 면 있어도 생성.
+
+router.get('/', async (req, res, next) => {
+  const succeed = true
+  const users = await libKakaoWork.getUserList()
+  const conversations = await Promise.all(
+    users.map((user) => {
+      db.serialize(() => {
+        db.each(`INSERT INTO user(id, making, making_vote_title, making_choice_number)
+SELECT * FROM (SELECT '${user.id}', 0, null, null)
+WHERE NOT EXISTS (
+SELECT id FROM user WHERE id = '${user.id}'
+)`)
+      })
+      return (libKakaoWork.openConversations({
+        userId: user.id
+      }))
+    }
+    )
+  )
+  const messages = await Promise.all([
+    conversations.map((conversation) => {
+      libKakaoWork.sendMessage(
+        first_message(conversation.id)
+      )
+    })
+  ])
+
+  res.json({
+    force_init: force_init,
+    succeed: succeed
+  })
+})
+
+router.post('/request', async (req, res, next) => {
+  const { message, actions, action_time, value, react_user_id } = req.body
+  switch (value) {
+    // 1.2
+    case 'create_vote':
+      db.serialize()
+      db.all(`SELECT * FROM user WHERE id=${react_user_id}`, [], async (err, data) => {
+        if (err) {
+          throw err
+        }
+        if (data[0].making) {
+          return res.json({ view: alert_create_vote() })
+        } else {
+          return res.json({ view: create_vote() })
+        }
+      })
+      break
+    case 'create_vote_choice':
+      db.serialize()
+      db.all(`SELECT * FROM user WHERE id=${react_user_id}`, (err, row) => {
+        return res.json({ view: create_vote_choice(row[0].making_choice_number) })
+      })
+      break
+
+    case 'cancel_vote':
+      db.serialize(() => {
+        db.each(`SELECT * FROM user WHERE id=${react_user_id}`, [], (err, data) => {
+          if (err) {
+            throw err
+          }
+          db.serialize(() => {
+            db.each(`UPDATE user 
+set making=0
+WHERE id = ${Number(react_user_id)}`)
+          })
+        })
+      })
+      await libKakaoWork.sendMessage(
+        first_message(message.conversation_id)
+      )
+      return res.json({ result: true })
+    case 'go_vote':
+      db.serialize()
+      db.all(`SELECT * from vote as v, vote_detail as vd
+WHERE v.conversation_id=${message.conversation_id} and 
+vd.conversation_id=${message.conversation_id}`, (err, row) => {
+        return res.json({
+          view: go_vote(row)
+        })
+      })
+      break
+    case 'close_vote':
+	  await libKakaoWork.kickUser({ user_id: react_user_id, conversation_id: message.conversation_id })
+	  break
+    case 'check_vote':
+      db.serialize()
+      db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2 FROM vote as v, vote_detail as vd, vote_user as vu
+WHERE v.conversation_id=${message.conversation_id} and
+vd.conversation_id=${message.conversation_id} and
+vu.conversation_id=${message.conversation_id}
+`, (err, row) => {
+        if (row.length == 0) {
+          res.json({ view: alert_check_vote(row) })
+        } else if (row[0].host_id == react_user_id) {
+          res.json({ view: check_vote_admin(row) })
+        } else {
+          res.json({ view: check_vote(row) })
+        }
+      })
+      break
+    default:
+
+      res.json({ result: true })
+  }
+})
 // routes/index.js
 router.post('/callback', async (req, res, next) => {
-  const { message, actions, action_time, value } = req.body; // 설문조사 결과 확인 (2)
-  console.log(actions);
+  const { message, actions, action_time, value, react_user_id } = req.body // 설문조사 결과 확인 (2)
   switch (value) {
-	// 2.1
-	case 'create_vote_modal':
-		// 1.2에서 받은 input 값 저장
-		vote_message = message;
-  		vote_actions = actions;
-  		vote_actions_time= action_time;
-  		vote_value = value;
-		await libKakaoWork.sendMessage({
-			conversationId: message.conversation_id,
-		    text: "투표 시작",
-		    blocks: [
-			  {
-				type: "text",
-				text: "참가할 인원을 방에 초대한 뒤 버튼을 눌러 투표를 시작하세요",
-				markdown: true
-			  },
-			  {
-				type: "button",
-				text: "투표 시작",
-				style: "primary",
-				action_type:"submit_action",
-				action_name:"accept",
-				value:"vote_start"
-			  }
-			]	
-		})
-		break;
-	// 2.2
-	case "vote_start":
-		  await libKakaoWork.sendMessage({
-			conversationId: message.conversation_id,
-			  text: "투표하기",
-			  blocks: [
-				{
-				  type: "header",
-				  text: vote_actions.votetitle,
-				  style: "blue"
-				},
-				{
-				  type: "divider"
-				},
-				{
-				  type: "text",
-				  text: vote_actions.selection_1,
-				  markdown: true
-				},
-				{
-				  type: "text",
-				  text: vote_actions.selection_2,
-				  markdown: true
-				},
-				{
-				  type: "text",
-				  text: vote_actions.selection_3,
-				  markdown: true
-				},
-				{
-				  type: "text",
-				  text: vote_actions.selection_4,
-				  markdown: true
-				},
-				{
-				  type: "divider"
-				},
-				{
-				  type: "description",
-				  term: "작성자",
-				  content: {
-					type: "text",
-					text: "작성자",
-					markdown: false
-				  },
-				  accent: true
-				},
-				{
-				  type: "description",
-				  term: "시작일",
-				  content: {
-					type: "text",
-					text: vote_actions_time,
-					markdown: false
-				  },
-				  accent: true
-				},
-				{ 
-				  type: "divider"
-				},
-				{
-				  type: "action",
-				  elements: [
-					{
-					  type: "button",
-					  text: "투표하기",
-					  style: "primary",
-					  action_type: "call_modal",
-				      value: "vote_selection_modal"
-					},
-					{
-					  type: "button",
-					  text: "투표 제어",
-					  style: "default",
-					  action_type: "call_modal",
-				      value: "vote_control_modal"
-					}
-				  ]
-				}
-			  ]
-		  })
-	case "vote_control":
-		  switch (actions.select) {
-			  //2.5
-			  case "vote_status":
-				  await libKakaoWork.sendMessage({
-					  conversationId: message.conversation_id,
-					  text: vote_actions.votetitle + " 투표의 중간 집계가 도착하였습니다.",
-					  blocks: [
-						{
-						  type: "header",
-						  text: vote_actions.votetitle + "중간 집계",
-						  style: "blue"
-						},
-						{
-						  type: "divider"
-						},
-						{
-						  type: "text",
-						  text: "1) " +vote_actions.selection_1+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "text",
-						  text: "2) " +vote_actions.selection_2+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "text",
-						  text: "3) " +vote_actions.selection_3+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "text",
-						  text: "4) " +vote_actions.selection_4+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "divider"
-						},
-						{
-						  type: "description",
-						  term: "참여율",
-						  content: {
-							type: "text",
-							text: "{} of "+total_people,
-							markdown: false
-						  },
-						  accent: true
-						}
-					  ]
-					  
-				  })
-				  break;
-			  //3.1
-			  case "result_message":
-				  await libKakaoWork.sendMessage({
-					  conversationId: message.conversation_id,
-					  text: "{"+vote_actions.votetitle+"}"+"의 투표결과가 도착했습니다.",
-					  blocks: [
-						{
-						  type: "header",
-						  text: "{"+vote_actions.votetitle+"}"+"투표 결과",
-						  style: "blue"
-						},
-						{
-						  type: "divider"
-						},
-						{
-						  type: "text",
-						  text: "1) " +vote_actions.selection_1+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "text",
-						  text: "2) " +vote_actions.selection_2+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "text",
-						  text: "3) " +vote_actions.selection_3+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "text",
-						  text: "4) " +vote_actions.selection_4+" {} 표",
-						  markdown: true
-						},
-						{
-						  type: "divider"
-						},
-						{
-						  type: "description",
-						  term: "종료시간",
-						  content: {
-							type: "text",
-							text: action_time,
-							markdown: false
-						  },
-						  accent: true
-						}     
-					  ]
-				  })
-		  }	
-    break;
+    case 'create_vote_callback':
+      db.serialize(() => {
+        db.each(`UPDATE user set making=1, making_vote_title='${actions.vote_title}', making_choice_number=${Number(actions.choice_number)} WHERE id = ${Number(react_user_id)}`)
+      })
+      await libKakaoWork.sendMessage(
+        create_vote_callback(message.conversation_id, actions.vote_title, actions.choice_number)
+      )
+      break
+    case 'alert_create_vote_callback':
+      db.serialize()
+      db.all(`SELECT * FROM user WHERE id=${react_user_id}`, async (err, data) => {
+        await libKakaoWork.sendMessage(
+          create_vote_callback(message.conversation_id, data[0].making_vote_title, data[0].making_choice_number)
+        )
+      })
+      break
+    case 'do_admin':
+      const admin_mode = actions.admin_mode
+      if (admin_mode == 'end_vote') {
+        db.serialize()
+        db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2 FROM vote as v, vote_detail as vd, vote_user as vu
+WHERE v.conversation_id=${message.conversation_id} and
+vd.conversation_id=${message.conversation_id} and
+vu.conversation_id=${message.conversation_id}
+`, async (err, row) => {
+          await libKakaoWork.sendMessage(
+            end_vote(message.conversation_id, row)
+          )
+        })
+      } else if (admin_mode == 'plz_vote') {
+        db.serialize()
+        db.all(`SELECT vt.choice, vote_title FROM vote_detail as vt, vote as v
+WHERE v.conversation_id = ${message.conversation_id} and
+vt.conversation_id = ${message.conversation_id}`, async (err, rows) => {
+          const conversation_id = message.conversation_id
+          const vote_title = rows[0].vote_title
+          const choices = {}
+          for (i in rows) {
+            data = rows[i]
+            choices['선택지 ' + `${i}`] = data.choice
+          };
+          await libKakaoWork.sendMessage(
+            plz_vote(conversation_id, choices, vote_title)
+          )
+        })
+      }
+      break
+
+    case 'do_vote':
+      var choice = actions.choice
+      db.serialize()
+      db.all(`SELECT * FROM vote_user 
+WHERE conversation_id=${message.conversation_id} and user_id=${react_user_id}`, (err, rows) => {
+        if (!rows.length) {
+          db.all(`INSERT INTO vote_user(conversation_id, user_id, choice) 
+values(${message.conversation_id}, ${react_user_id}, '${choice}')`)
+        } else {
+          db.all(`UPDATE vote_user set choice = '${choice}'
+WHERE conversation_id=${message.conversation_id} and user_id=${react_user_id}`)
+        }
+      })
+      break
+    case 'create_vote_done':
+      db.serialize(() => {
+        db.each(`SELECT * FROM user WHERE id=${react_user_id}`, [], (err, data) => {
+          if (err) {
+            throw err
+          }
+          db.serialize(() => {
+            db.each(`UPDATE user 
+set making=0
+WHERE id = ${Number(react_user_id)}`)
+          })
+        })
+      })
+
+      const group_info = await libKakaoWork.openGroupConversations({
+        userIds: [react_user_id]
+      })
+      db.all(`SELECT * FROM user WHERE id=${react_user_id}`, async (err, data) => {
+        const vote_title = data[0].making_vote_title
+        const choice_number = data[0].making_choice_number
+        const host_id = react_user_id
+        const conversation_id = group_info.id
+        db.each(`INSERT INTO vote(conversation_id, vote_title, choice_number, host_id) 
+SELECT * FROM (SELECT ${conversation_id}, '${vote_title}', ${choice_number}, ${host_id})
+WHERE NOT EXISTS (
+SELECT conversation_id FROM vote WHERE conversation_id = ${conversation_id}
+)`)
+      })
+      for (key in actions) {
+        db.each(`INSERT INTO vote_detail(conversation_id, choice) 
+VALUES (${group_info.id}, '${actions[key]}')`)
+      }
+      db.all(`SELECT * FROM user WHERE id=${react_user_id}`, async (err, data) => {
+        const vote_title = data[0].making_vote_title
+        const conversation_id = group_info.id
+        const message = start_vote(conversation_id, actions, vote_title)
+        await libKakaoWork.sendMessage(
+          message
+        )
+      })
+      await libKakaoWork.sendMessage(
+        first_message(message.conversation_id)
+      )
+      break
     default:
   }
 
-  res.json({ result: true });
-});
-module.exports = router;
+  res.json({ result: true })
+})
+module.exports = router

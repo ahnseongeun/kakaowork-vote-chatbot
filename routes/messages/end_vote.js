@@ -1,0 +1,76 @@
+start_vote_generator = (conversationId, row) => {
+  const vote_title = row[0].vote_title
+  const choices = []
+  const counts = []
+  for (i in row) {
+    data = row[i]
+    if (choices.includes(data.c1)) {
+    } else {
+      choices.push(data.c1)
+    }
+  }
+  for (i = 0; i < choices.length; i++) {
+    counts[i] = 0
+  }
+  for (i in row) {
+    data = row[i]
+    if (data.c1 == data.c2) {
+      for (j = 0; j < choices.length; j++) {
+        if (data.c1 == choices[j]) {
+          counts[j] += 1
+        }
+      }
+    }
+  }
+  const message = {
+		  conversationId: conversationId,
+		  text: '투표가 종료되었습니다.',
+		  blocks: [
+      {
+			  type: 'header',
+			  text: '투표 종료! 결과를 확인해보세요.',
+			  style: 'blue'
+      },
+      {
+			  type: 'divider'
+      },
+      {
+			  type: 'description',
+			  term: '투표 명',
+			  content: {
+          type: 'text',
+          text: `${vote_title}`,
+          markdown: false
+			  },
+			  accent: true
+      },
+      {
+			  type: 'divider'
+      }
+		  ]
+  }
+  const button1 = {
+			  type: 'button',
+			  text: '투표방 나가기',
+			  action_type: 'call_modal',
+			  value: 'close_vote',
+			  style: 'primary'
+  }
+  for (key in choices) {
+    const part = {
+		  type: 'description',
+		  term: '선택지 ' + `${Number(key) + 1}`,
+		  content: {
+        type: 'text',
+        text: `${choices[key]}` + '   \t\t' + `${counts[key]}` + ' 표',
+        markdown: false
+		  },
+		  accent: true
+    }
+    message.blocks.push(part)
+  }
+  message.blocks.push(button1)
+  return message
+}
+
+module.exports = start_vote_generator
