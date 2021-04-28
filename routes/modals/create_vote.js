@@ -104,6 +104,27 @@ create_vote_generator = () => {
 			  ],
 			  required: true,
 			  placeholder: '선택지 개수를 입력하세요 (필수)'
+      },
+	  {
+			  type: 'label',
+			  text: '중복 여부',
+			  markdown: true
+      },
+      {
+			  type: 'select',
+			  name: 'duplicated_check',
+			  options: [
+          {
+				  text: '중복 불가능',
+				  value: '0'
+          },
+          {
+				  text: '중복 가능',
+				  value: '1'
+          }
+			  ],
+			  required: true,
+			  placeholder: '중복 여부 (필수)'
       }
 		  ]
   })

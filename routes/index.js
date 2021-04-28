@@ -15,6 +15,7 @@ const alert_create_vote = require('./modals/alert_create_vote')
 const create_vote = require('./modals/create_vote')
 const create_vote_choice = require('./modals/create_vote_choice')
 const go_vote = require('./modals/go_vote')
+const go_vote_duplicated = require('./modals/go_vote_duplicated')
 const check_vote = require('./modals/check_vote')
 const check_vote_admin = require('./modals/check_vote_admin')
 // db
@@ -37,10 +38,10 @@ db.serialize(() => {
 if (force_init) {
   db.serialize(() => {
     // drop and create table
+    db.each(query.dropVoteDetail)
+    db.each(query.dropVoteUser)
     db.each(query.dropUser)
     db.each(query.dropVote)
-    db.each(query.dropVoteUser)
-    db.each(query.dropVoteDetail)
   })
 }
 db.serialize(() => {
@@ -124,38 +125,46 @@ WHERE id = ${Number(react_user_id)}`)
       await libKakaoWork.sendMessage(
         first_message(message.conversation_id)
       )
-      return res.json({ result: true })
+	  return res.json({ result: true })
     case 'go_vote':
       db.serialize()
       db.all(`SELECT * from vote as v, vote_detail as vd
 WHERE v.conversation_id=${message.conversation_id} and 
 vd.conversation_id=${message.conversation_id}`, (err, row) => {
-        return res.json({
-          view: go_vote(row)
-        })
+		if(row[0].duplicated_check){
+          return res.json({
+		  	view: go_vote_duplicated(row)
+          })
+		}
+		else{
+	      return res.json({
+		  	view: go_vote(row)
+          })
+		}
       })
       break
     case 'close_vote':
 	  await libKakaoWork.kickUser({ user_id: react_user_id, conversation_id: message.conversation_id })
 	  break
     case 'check_vote':
-      db.serialize()
-      db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2 FROM vote as v, vote_detail as vd, vote_user as vu
+      db.serialize(() => {
+		  //db.all(`SELECT vote_title, host_id, vd.choice, `)
+	  })
+      db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2 FROM vote as v, (vote_detail as vd LEFT OUTER JOIN vote_user as vu) as vc
 WHERE v.conversation_id=${message.conversation_id} and
-vd.conversation_id=${message.conversation_id} and
-vu.conversation_id=${message.conversation_id}
+vc.conversation_id=${message.conversation_id}
 `, (err, row) => {
-        if (row.length == 0) {
+		if (row.length == 0) {
           res.json({ view: alert_check_vote(row) })
         } else if (row[0].host_id == react_user_id) {
           res.json({ view: check_vote_admin(row) })
         } else {
           res.json({ view: check_vote(row) })
         }
+		
       })
       break
     default:
-
       res.json({ result: true })
   }
 })
@@ -165,17 +174,21 @@ router.post('/callback', async (req, res, next) => {
   switch (value) {
     case 'create_vote_callback':
       db.serialize(() => {
-        db.each(`UPDATE user set making=1, making_vote_title='${actions.vote_title}', making_choice_number=${Number(actions.choice_number)} WHERE id = ${Number(react_user_id)}`)
+        db.each(`UPDATE user set making=1, making_vote_title='${actions.vote_title}', making_choice_number=${Number(actions.choice_number)}, duplicated_check = ${Number(actions.duplicated_check)} WHERE id = ${Number(react_user_id)}`)
       })
+	  var duplicated = ''
+	  if(Number(actions.duplicated_check)==1) {duplicated = '가능'} else {duplicated = '불가능'}
       await libKakaoWork.sendMessage(
-        create_vote_callback(message.conversation_id, actions.vote_title, actions.choice_number)
+        create_vote_callback(message.conversation_id, actions.vote_title, actions.choice_number,duplicated)
       )
       break
     case 'alert_create_vote_callback':
       db.serialize()
       db.all(`SELECT * FROM user WHERE id=${react_user_id}`, async (err, data) => {
+	  var duplicated = ''
+	  if(data[0].duplicated_check==1) {duplicated = '가능'} else {duplicated = '불가능'}
         await libKakaoWork.sendMessage(
-          create_vote_callback(message.conversation_id, data[0].making_vote_title, data[0].making_choice_number)
+          create_vote_callback(message.conversation_id, data[0].making_vote_title, data[0].making_choice_number, duplicated)
         )
       })
       break
@@ -212,19 +225,25 @@ vt.conversation_id = ${message.conversation_id}`, async (err, rows) => {
       break
 
     case 'do_vote':
-      var choice = actions.choice
-      db.serialize()
-      db.all(`SELECT * FROM vote_user 
-WHERE conversation_id=${message.conversation_id} and user_id=${react_user_id}`, (err, rows) => {
-        if (!rows.length) {
-          db.all(`INSERT INTO vote_user(conversation_id, user_id, choice) 
+      db.serialize(() => {
+        db.each(`DELETE FROM vote_user WHERE conversation_id = ${message.conversation_id} and user_id=${react_user_id}`)
+		db.each(`SELECT duplicated_check FROM vote WHERE conversation_id = ${message.conversation_id}`, (err,data) => {
+			if(data.duplicated_check == 1){
+				for(key in actions)
+					if(actions[key]==1){
+						db.each(`INSERT INTO vote_user(conversation_id, user_id, choice) 
+values(${message.conversation_id}, ${react_user_id}, '${key}')`)
+					}
+			}
+			else{
+				var choice = actions.choice
+				db.each(`INSERT INTO vote_user(conversation_id, user_id, choice) 
 values(${message.conversation_id}, ${react_user_id}, '${choice}')`)
-        } else {
-          db.all(`UPDATE vote_user set choice = '${choice}'
-WHERE conversation_id=${message.conversation_id} and user_id=${react_user_id}`)
-        }
+			}
+		})
       })
-      break
+		  
+	break
     case 'create_vote_done':
       db.serialize(() => {
         db.each(`SELECT * FROM user WHERE id=${react_user_id}`, [], (err, data) => {
@@ -247,8 +266,9 @@ WHERE id = ${Number(react_user_id)}`)
         const choice_number = data[0].making_choice_number
         const host_id = react_user_id
         const conversation_id = group_info.id
-        db.each(`INSERT INTO vote(conversation_id, vote_title, choice_number, host_id) 
-SELECT * FROM (SELECT ${conversation_id}, '${vote_title}', ${choice_number}, ${host_id})
+		const duplicated_check = data[0].duplicated_check
+        db.each(`INSERT INTO vote(conversation_id, vote_title, choice_number, host_id, duplicated_check) 
+SELECT * FROM (SELECT ${conversation_id}, '${vote_title}', ${choice_number}, ${host_id}, ${duplicated_check})
 WHERE NOT EXISTS (
 SELECT conversation_id FROM vote WHERE conversation_id = ${conversation_id}
 )`)
