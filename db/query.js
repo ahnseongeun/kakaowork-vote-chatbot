@@ -4,7 +4,8 @@ exports.createUser = `
 	making INTEGER NULL,
     duplicated_check INTEGER NULL,
 	making_vote_title VARCHAR(45) NULL,
-	making_choice_number INTEGER NULL
+	making_choice_number INTEGER NULL,
+    vote_period INTEGER NULL
   )`
 
 exports.createVote = `
@@ -15,8 +16,7 @@ exports.createVote = `
     /*add_detail_check INTEGER NULL,*/
 	vote_title VARCHAR(45) NULL,
 	choice_number INTEGER NULL,
-    /* create_date DATETIME NULL,
-    end_date DATETIME NULL */
+    end_date DATETIME NULL,
     status INTEGER NULL
   )`
 
