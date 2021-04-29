@@ -57,7 +57,7 @@ db.serialize(() => {
 
 router.get('/', async (req, res, next) => {
 	const succeed = true
-	const users = await libKakaoWork.getUserList()
+	const users = await libKakaoWork.getAllUserList()
 	const conversations = await Promise.all(
 		users.map((user) => {
 			db.serialize(() => {
@@ -72,12 +72,25 @@ SELECT id FROM user WHERE id = '${user.id}'
 			}))
 		})
 	)
+
+	// const messages = await Promise.all([
+	// 	conversations.map((conversation) => {
+			
+	// 		libKakaoWork.sendMessage(
+	// 			first_message(conversation.id)
+	// 		)
+	// 	})
+	// ])
+	
+	team_7 = ['김혜수','박홍빈','고동천','김태형','한일석','안성은']
+	
 	const messages = await Promise.all([
 		conversations.map((conversation) => {
-
-			libKakaoWork.sendMessage(
-				first_message(conversation.id)
-			)
+			if(team_7.includes(conversation.name)){
+				libKakaoWork.sendMessage(
+					first_message(conversation.id)
+				)
+			}
 		})
 	])
 
@@ -240,6 +253,7 @@ WHERE id = ${Number(react_user_id)}`)
 				create_vote_callback(message.conversation_id, actions.vote_title, actions.choice_number, duplicated)
 			)
 			break
+			
 		case 'alert_create_vote_callback':
 			db.serialize()
 			db.all(`SELECT * FROM user WHERE id=${react_user_id}`, async (err, data) => {
@@ -254,6 +268,7 @@ WHERE id = ${Number(react_user_id)}`)
 				)
 			})
 			break
+			
 		case 'do_admin':
 			const admin_mode = actions.admin_mode
 			if (admin_mode == 'end_vote') {

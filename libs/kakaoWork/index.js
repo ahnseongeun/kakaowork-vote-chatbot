@@ -52,3 +52,21 @@ exports.kickUser = async ({ user_id, conversation_id }) => {
   const res = await kakaoInstance.post('/v1/conversations/' + `${conversation_id}` + '/kick', data)
   return res.data
 }
+
+//유저 모두 가져오기
+exports.getAllUserList = async () => {
+	let users = [];
+	let res = await kakaoInstance.get('/v1/users.list');
+    let cursor = res.data.cursor;
+	users = users.concat(res.data.users);
+
+  	while(true){
+	  res = await kakaoInstance.get(`/v1/users.list?cursor=${cursor}`);
+	  cursor = res.data.cursor
+	  if(cursor === null) break;
+  	  users = users.concat(res.data.users);
+  	}
+	
+	return users;
+}
+

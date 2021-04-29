@@ -59,6 +59,10 @@ check_vote_admin_generator = (row) => {
 		  type: 'select',
 		  name: 'admin_mode',
 		  options: [
+	  {
+			  text: '선택 없음',
+			  value: 'exit_admin'
+      },
       {
 			  text: '투표 재촉하기',
 			  value: 'plz_vote'
@@ -68,8 +72,8 @@ check_vote_admin_generator = (row) => {
 			  value: 'end_vote'
       }
 		  ],
-		  required: false,
-		  placeholder: '옵션을 선택해주세요'
+		  required: true
+		  //placeholder: '옵션을 선택해주세요'
   })
   return modal
 }
