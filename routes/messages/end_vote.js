@@ -1,12 +1,14 @@
 start_vote_generator = (conversationId, row) => {
   const vote_title = row[0].vote_title
   const choices = []
+  const choices_id = []
   const counts = []
   for (i in row) {
     data = row[i]
-    if (choices.includes(data.c1)) {
+    if (choices_id.includes(data.id1)) {
     } else {
-      choices.push(data.c1)
+      choices_id.push(data.id1)
+	  choices.push(data.c1)
     }
   }
   for (i = 0; i < choices.length; i++) {
@@ -14,9 +16,9 @@ start_vote_generator = (conversationId, row) => {
   }
   for (i in row) {
     data = row[i]
-    if (data.c1 == data.c2) {
-      for (j = 0; j < choices.length; j++) {
-        if (data.c1 == choices[j]) {
+    if (data.id1 == data.id2) {
+      for (j = 0; j < choices_id.length; j++) {
+        if (data.id2 == choices_id[j]) {
           counts[j] += 1
         }
       }

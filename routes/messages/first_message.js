@@ -13,7 +13,7 @@ first_message_generator = (conversationId) => {
 			  text: '투표 만들기',
 			  style: 'default',
 			  action_type: 'call_modal',
-        value: 'create_vote'
+        	  value: 'create_vote'
       }
 		  ]
   })

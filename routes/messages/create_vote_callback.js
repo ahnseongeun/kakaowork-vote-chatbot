@@ -38,7 +38,8 @@ create_vote_callback_generator = (conversationId, vote_title, choice_number, dup
 			  type: 'button',
 			  text: '투표 취소하기',
 			  style: 'default',
-			  action_type: 'call_modal',
+			  action_type: 'submit_action',
+		      action_name: 'cancel_vote',
 			  value: 'cancel_vote'
       }
 		  ]

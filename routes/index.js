@@ -9,6 +9,7 @@ const create_vote_callback = require('./messages/create_vote_callback')
 const start_vote = require('./messages/start_vote.js')
 const plz_vote = require('./messages/plz_vote.js')
 const end_vote = require('./messages/end_vote.js')
+const alert_create_room = require('./messages/alert_create_room')
 // modals
 const alert_check_vote = require('./modals/alert_check_vote')
 const alert_create_vote = require('./modals/alert_create_vote')
@@ -18,6 +19,7 @@ const go_vote = require('./modals/go_vote')
 const go_vote_duplicated = require('./modals/go_vote_duplicated')
 const check_vote = require('./modals/check_vote')
 const check_vote_admin = require('./modals/check_vote_admin')
+const closed_vote = require('./modals/closed_vote')
 // db
 const sqlite3 = require('sqlite3').verbose()
 const query = require('../db/query')
@@ -73,7 +75,8 @@ SELECT id FROM user WHERE id = '${user.id}'
   )
   const messages = await Promise.all([
     conversations.map((conversation) => {
-      libKakaoWork.sendMessage(
+		
+     	libKakaoWork.sendMessage(
         first_message(conversation.id)
       )
     })
@@ -109,7 +112,74 @@ router.post('/request', async (req, res, next) => {
       })
       break
 
-    case 'cancel_vote':
+    
+    case 'go_vote':
+      	db.serialize()
+		db.each(`SELECT status FROM vote WHERE conversation_id = ${message.conversation_id}`,(err,row)=>{
+			if(row.status==0){
+				return res.json({view: closed_vote()})
+			}
+			else{
+				db.all(`SELECT * from vote as v, vote_detail as vd
+WHERE v.conversation_id=${message.conversation_id} and 
+vd.conversation_id=${message.conversation_id}`, (err, row) => {
+		var tmp = row
+		for (var k in row){
+			tmp[k].id = String(row[k].id)
+		}
+		if(row[0].duplicated_check){
+          return res.json({
+		  	view: go_vote_duplicated(tmp)
+          })
+		}
+		else{
+	      return res.json({
+		  	view: go_vote(tmp)
+          })
+		}
+      })
+			}
+		})
+      
+      break
+    case 'close_vote':
+	  await libKakaoWork.kickUser({ user_id: react_user_id, conversation_id: message.conversation_id })
+	  break
+    case 'check_vote':
+	
+    	db.serialize()
+		db.each(`SELECT status FROM vote WHERE conversation_id = ${message.conversation_id}`,(err,row)=>{
+			if(row.status==0){
+				return res.json({view: closed_vote()})
+			}
+			else{
+				db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2, vd.id as id1, vu.choice_id as id2 FROM vote as v, (vote_detail as vd LEFT OUTER JOIN vote_user as vu) as vc
+WHERE v.conversation_id=${message.conversation_id} and
+vd.conversation_id=${message.conversation_id}
+`, (err, row) => {
+		console.log(row)
+		if (row.length == 0) {
+          res.json({ view: alert_check_vote(row) })
+        } else if (row[0].host_id == react_user_id) {
+          res.json({ view: check_vote_admin(row) })
+        } else {
+          res.json({ view: check_vote(row) })
+        }
+		
+      })
+			}
+		})
+      
+      break
+    default:
+      res.json({ result: true })
+  }
+})
+// routes/index.js
+router.post('/callback', async (req, res, next) => {
+  const { message, actions, action_time, value, react_user_id } = req.body // 설문조사 결과 확인 (2)
+  switch (value) {
+	case 'cancel_vote':
       db.serialize(() => {
         db.each(`SELECT * FROM user WHERE id=${react_user_id}`, [], (err, data) => {
           if (err) {
@@ -126,52 +196,7 @@ WHERE id = ${Number(react_user_id)}`)
         first_message(message.conversation_id)
       )
 	  return res.json({ result: true })
-    case 'go_vote':
-      db.serialize()
-      db.all(`SELECT * from vote as v, vote_detail as vd
-WHERE v.conversation_id=${message.conversation_id} and 
-vd.conversation_id=${message.conversation_id}`, (err, row) => {
-		if(row[0].duplicated_check){
-          return res.json({
-		  	view: go_vote_duplicated(row)
-          })
-		}
-		else{
-	      return res.json({
-		  	view: go_vote(row)
-          })
-		}
-      })
-      break
-    case 'close_vote':
-	  await libKakaoWork.kickUser({ user_id: react_user_id, conversation_id: message.conversation_id })
-	  break
-    case 'check_vote':
-      db.serialize(() => {
-		  //db.all(`SELECT vote_title, host_id, vd.choice, `)
-	  })
-      db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2 FROM vote as v, (vote_detail as vd LEFT OUTER JOIN vote_user as vu) as vc
-WHERE v.conversation_id=${message.conversation_id} and
-vc.conversation_id=${message.conversation_id}
-`, (err, row) => {
-		if (row.length == 0) {
-          res.json({ view: alert_check_vote(row) })
-        } else if (row[0].host_id == react_user_id) {
-          res.json({ view: check_vote_admin(row) })
-        } else {
-          res.json({ view: check_vote(row) })
-        }
-		
-      })
-      break
-    default:
-      res.json({ result: true })
-  }
-})
-// routes/index.js
-router.post('/callback', async (req, res, next) => {
-  const { message, actions, action_time, value, react_user_id } = req.body // 설문조사 결과 확인 (2)
-  switch (value) {
+	
     case 'create_vote_callback':
       db.serialize(() => {
         db.each(`UPDATE user set making=1, making_vote_title='${actions.vote_title}', making_choice_number=${Number(actions.choice_number)}, duplicated_check = ${Number(actions.duplicated_check)} WHERE id = ${Number(react_user_id)}`)
@@ -196,14 +221,14 @@ router.post('/callback', async (req, res, next) => {
       const admin_mode = actions.admin_mode
       if (admin_mode == 'end_vote') {
         db.serialize()
-        db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2 FROM vote as v, vote_detail as vd, vote_user as vu
+        db.all(`SELECT vote_title, host_id, vd.choice as c1, vu.choice as c2, vd.id as id1, vu.choice_id as id2 FROM vote as v, (vote_detail as vd LEFT OUTER JOIN vote_user as vu) as vc
 WHERE v.conversation_id=${message.conversation_id} and
-vd.conversation_id=${message.conversation_id} and
-vu.conversation_id=${message.conversation_id}
+vd.conversation_id=${message.conversation_id}
 `, async (err, row) => {
-          await libKakaoWork.sendMessage(
-            end_vote(message.conversation_id, row)
-          )
+			db.each(`UPDATE vote SET status = 0 WHERE conversation_id = ${message.conversation_id}`)
+         	await libKakaoWork.sendMessage(
+        		end_vote(message.conversation_id, row)
+        	)
         })
       } else if (admin_mode == 'plz_vote') {
         db.serialize()
@@ -225,21 +250,30 @@ vt.conversation_id = ${message.conversation_id}`, async (err, rows) => {
       break
 
     case 'do_vote':
-      db.serialize(() => {
+    db.serialize(() => {
         db.each(`DELETE FROM vote_user WHERE conversation_id = ${message.conversation_id} and user_id=${react_user_id}`)
 		db.each(`SELECT duplicated_check FROM vote WHERE conversation_id = ${message.conversation_id}`, (err,data) => {
-			if(data.duplicated_check == 1){
+			db.serialize(() => {
+				if(data.duplicated_check == 1){
 				for(key in actions)
-					if(actions[key]==1){
-						db.each(`INSERT INTO vote_user(conversation_id, user_id, choice) 
-values(${message.conversation_id}, ${react_user_id}, '${key}')`)
+					if(actions[key]!=0){
+						var choice_id = Number(key)
+						console.log(key)
+						var choice = db.each(`SELECT choice FROM vote_detail WHERE id='${choice_id}'`, (err,row) =>{
+							return row
+						})
+						db.each(`INSERT INTO vote_user(conversation_id, user_id, choice, choice_id) 
+								values(${message.conversation_id}, ${react_user_id}, '${choice}', '${key}')`)
 					}
-			}
-			else{
-				var choice = actions.choice
-				db.each(`INSERT INTO vote_user(conversation_id, user_id, choice) 
-values(${message.conversation_id}, ${react_user_id}, '${choice}')`)
-			}
+				}
+				else{
+					var choice_id = Number(actions.choice_id)
+					var choice = db.each(`SELECT choice FROM vote_detail WHERE id='${choice_id}'`, (err,row) =>{
+						return row
+					})
+					db.each(`INSERT INTO vote_user(conversation_id, user_id, choice, choice_id) values(${message.conversation_id}, ${react_user_id}, '${choice}', '${choice_id}')`)
+				}
+			})
 		})
       })
 		  
@@ -267,8 +301,9 @@ WHERE id = ${Number(react_user_id)}`)
         const host_id = react_user_id
         const conversation_id = group_info.id
 		const duplicated_check = data[0].duplicated_check
-        db.each(`INSERT INTO vote(conversation_id, vote_title, choice_number, host_id, duplicated_check) 
-SELECT * FROM (SELECT ${conversation_id}, '${vote_title}', ${choice_number}, ${host_id}, ${duplicated_check})
+		const status = 1
+        db.each(`INSERT INTO vote(conversation_id, vote_title, choice_number, host_id, duplicated_check, status) 
+SELECT * FROM (SELECT ${conversation_id}, '${vote_title}', ${choice_number}, ${host_id}, ${duplicated_check}, ${status})
 WHERE NOT EXISTS (
 SELECT conversation_id FROM vote WHERE conversation_id = ${conversation_id}
 )`)
@@ -285,6 +320,10 @@ VALUES (${group_info.id}, '${actions[key]}')`)
           message
         )
       })
+		  
+	  await libKakaoWork.sendMessage(
+        alert_create_room(message.conversation_id)
+      )
       await libKakaoWork.sendMessage(
         first_message(message.conversation_id)
       )

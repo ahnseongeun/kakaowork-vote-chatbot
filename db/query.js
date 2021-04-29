@@ -11,13 +11,13 @@ exports.createVote = `
   CREATE TABLE IF NOT EXISTS vote(
     conversation_id VARCHAR(45) PRIMARY KEY,
     host_id VARCHAR(45) NULL,
-    /*Anonymous_check INTEGER NULL,*/
     duplicated_check INTEGER NULL,
     /*add_detail_check INTEGER NULL,*/
 	vote_title VARCHAR(45) NULL,
-	choice_number INTEGER NULL
+	choice_number INTEGER NULL,
     /* create_date DATETIME NULL,
     end_date DATETIME NULL */
+    status INTEGER NULL
   )`
 
 exports.createVoteUser = `
@@ -25,7 +25,8 @@ exports.createVoteUser = `
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 	conversation_id VARCHAR(45) NULL,
 	user_id INTEGER NULL,
-    choice VARCHAR(45) NULL
+    choice VARCHAR(45) NULL,
+	choice_id INTEGER NULL
   )`
 
 exports.createVoteDetail = `

@@ -23,7 +23,7 @@ go_vote_generator = (row) => {
     const option2 = 
 		{
 		type: 'select',
-			  name: `${row[i].choice}`,
+			  name: `${row[i].id}`,
 			  options: [
           		{
 				  text: '선택',

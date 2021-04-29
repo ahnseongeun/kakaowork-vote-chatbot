@@ -12,7 +12,7 @@ go_vote_generator = (row) => {
       },
       {
 		  type: 'select',
-		  name: 'choice',
+		  name: 'choice_id',
 		  options: [
 
 		  ],
@@ -25,7 +25,7 @@ go_vote_generator = (row) => {
   for (i = 0; i < row[0].choice_number; i++) {
     const option = {
 			  text: `${row[i].choice}`,
-			  value: `${row[i].choice}`
+			  value: `${row[i].id}`
     }
     modal.blocks[1].options.push(option)
   }
