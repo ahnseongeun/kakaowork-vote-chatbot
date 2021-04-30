@@ -100,6 +100,39 @@ SELECT id FROM user WHERE id = '${user.id}'
 	})
 })
 
+router.post('/chatbot', async (req, res, next) => {
+	const succeed = true
+	const users = await libKakaoWork.getAllUserList()
+	const conversations = await Promise.all(
+		users.map((user) => {
+			db.serialize(() => {
+				db.each(`INSERT INTO user(id, making, making_vote_title, making_choice_number)
+SELECT * FROM (SELECT '${user.id}', 0, null, null)
+WHERE NOT EXISTS (
+SELECT id FROM user WHERE id = '${user.id}'
+)`)
+			})
+			return (libKakaoWork.openConversations({
+				userId: user.id
+			}))
+		})
+	)
+
+	const messages = await Promise.all([
+		conversations.map((conversation) => {
+			
+			libKakaoWork.sendMessage(
+				first_message(conversation.id)
+			)
+		})
+	])
+
+	res.json({
+		force_init: force_init,
+		succeed: succeed
+	})
+})
+
 router.post('/request', async (req, res, next) => {
 	const {
 		message,
