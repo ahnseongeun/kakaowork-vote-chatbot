@@ -26,19 +26,16 @@ start_vote_generator = (conversationId, row) => {
   }
   const message = {
 		  conversationId: conversationId,
-		  text: '투표가 종료되었습니다.',
+		  text: `${vote_title}  투표가 종료되었습니다.`,
 		  blocks: [
       {
 			  type: 'header',
-			  text: '투표 종료! 결과를 확인해보세요.',
+			  text: '투표가 종료되었습니다',
 			  style: 'blue'
       },
       {
-			  type: 'divider'
-      },
-      {
 			  type: 'description',
-			  term: '투표 명',
+			  term: '투표 제목',
 			  content: {
           type: 'text',
           text: `${vote_title}`,
@@ -61,10 +58,10 @@ start_vote_generator = (conversationId, row) => {
   for (key in choices) {
     const part = {
 		  type: 'description',
-		  term: '선택지 ' + `${Number(key) + 1}`,
+		  term: `${choices[key]}`,
 		  content: {
         type: 'text',
-        text: `${choices[key]}` + '   \t\t' + `${counts[key]}` + ' 표',
+        text: `${counts[key]}` + ' 표',
         markdown: false
 		  },
 		  accent: true

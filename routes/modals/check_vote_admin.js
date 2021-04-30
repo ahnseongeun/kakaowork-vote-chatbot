@@ -32,7 +32,7 @@ check_vote_admin_generator = (row) => {
 	  blocks: [
       {
 		  type: 'label',
-		  text: `${vote_title}`,
+		  text: `*${vote_title}* 결과`,
 		  markdown: true
       }
 	  ]
@@ -52,7 +52,7 @@ check_vote_admin_generator = (row) => {
   })
   modal.blocks.push({
 		  type: 'label',
-		  text: '투표 관리',
+		  text: '\n\n*투표 관리*',
 		  markdown: true
   })
   modal.blocks.push({

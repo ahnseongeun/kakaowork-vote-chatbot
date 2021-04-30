@@ -12,7 +12,7 @@ create_vote_choice_generator = (choice_number) => {
   for (i = 0; i < choice_number; i++) {
     template.blocks.push({
 		  type: 'label',
-		  text: '선택지 ' + (i + 1),
+		  text: '*선택지 ' + (i + 1)+'*',
 		  markdown: true
     })
     template.blocks.push({

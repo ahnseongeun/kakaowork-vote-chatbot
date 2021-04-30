@@ -32,7 +32,7 @@ check_vote_generator = (row) => {
 	  blocks: [
       {
 		  type: 'label',
-		  text: `${vote_title}`,
+		  text: `*${vote_title}* 결과`,
 		  markdown: true
       }
 	  ]

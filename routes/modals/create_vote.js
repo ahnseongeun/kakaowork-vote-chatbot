@@ -1,23 +1,23 @@
 create_vote_generator = () => {
 	return ({
-		title: '투표 생성하기',
-		accept: '확인',
-		decline: '취소',
+		title: '투표 만들기 (1/2)',
+		accept: '다음 단계로',
+		decline: '취소하기',
 		value: 'create_vote_callback',
 		blocks: [{
 				type: 'label',
-				text: '투표 제목',
+				text: '*투표 제목*',
 				markdown: true
 			},
 			{
 				type: 'input',
 				name: 'vote_title',
 				required: true,
-				placeholder: '투표제목을 입력하세요 (필수)'
+				placeholder: '투표 제목을 입력하세요 (필수)'
 			},
 			{
 				type: 'label',
-				text: '선택지 수',
+				text: '*선택지 수*',
 				markdown: true
 			},
 			{
@@ -41,11 +41,11 @@ create_vote_generator = () => {
 					}
 				],
 				required: true,
-				placeholder: '선택지 개수를 입력하세요 (필수)'
+				placeholder: '선택지 개수를 선택하세요 (필수)'
 			},
 			{
 				type: 'label',
-				text: '중복 여부',
+				text: '*중복 여부*',
 				markdown: true
 			},
 			{
@@ -61,11 +61,11 @@ create_vote_generator = () => {
 					}
 				],
 				required: true,
-				placeholder: '중복 여부 (필수)'
+				placeholder: '중복 여부를 선택하세요 (필수)'
 			},
 			{
 				type: 'label',
-				text: '투표 기간',
+				text: '*투표 기간*',
 				markdown: true
 			},
 			{
@@ -89,7 +89,7 @@ create_vote_generator = () => {
 					}
 				],
 				required: true,
-				placeholder: '투표 기간 (필수)'
+				placeholder: '투표 기간을 설정하세요 (필수)'
 			}
 		]
 	})

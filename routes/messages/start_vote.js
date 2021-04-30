@@ -1,18 +1,15 @@
 start_vote_generator = (conversationId, choices, vote_title, end_date) => {
 	const message = {
 		conversationId: conversationId,
-		text: '투표를 시작해 보세요.',
+		text: `${vote_title}`+' 투표에 참여해주세요 👀',
 		blocks: [{
 				type: 'header',
-				text: '투표를 시작해 보세요.',
-				style: 'blue'
-			},
-			{
-				type: 'divider'
+				text: '투표에 참여해주세요✨',
+				style: 'yellow'
 			},
 			{
 				type: 'description',
-				term: '투표 명',
+				term: '투표 제목',
 				content: {
 					type: 'text',
 					text: `${vote_title}`,
@@ -52,11 +49,24 @@ start_vote_generator = (conversationId, choices, vote_title, end_date) => {
 		}
 		message.blocks.push(part)
 	}
+	// const text = {
+	// 	"type": "text",
+	// 	"text": "투표 종료 시간: " + `${end_date}`,
+	// 	"markdown": true
+	// }
+	
 	const text = {
-		"type": "text",
-		"text": "투표 종료 시간: " + `${end_date}`,
-		"markdown": true
+		type: 'description',
+		term: '투표 종료 시간',
+		content: {
+			type: 'text',
+			text: `${end_date}`,
+			markdown: false
+		},
+		accent: true
 	}
+	
+	
 	const div = {
 		type: 'divider'
 	}

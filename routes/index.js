@@ -296,8 +296,9 @@ vt.conversation_id = ${message.conversation_id}`, async (err, rows) => {
 					};
 					const period = rows[0].end_date + 9 * 60 * 60 * 1000
 					const end_date = new Date(period)
+					const formatted_date = (1+end_date.getMonth()) + '월 ' + (end_date.getDate()) + '일 '+ (end_date.getHours()) +'시 ' + (end_date.getMinutes()) + '분' 
 					await libKakaoWork.sendMessage(
-						plz_vote(conversation_id, choices, vote_title, end_date.toISOString().slice(0, 19).replace('T', ' '))
+						plz_vote(conversation_id, choices, vote_title, formatted_date)
 					)
 				})
 			}
@@ -384,7 +385,9 @@ VALUES (${group_info.id}, '${actions[key]}')`)
 				const conversation_id = group_info.id
 				const period = Date.now() + data[0].vote_period * 60 * 60 * 1000 + 9 * 60 * 60 * 1000
 				const end_date = new Date(period)
-				const message = start_vote(conversation_id, actions, vote_title, end_date.toISOString().slice(0, 19).replace('T', ' '))
+				const formatted_date = (1+end_date.getMonth()) + '월 ' + (end_date.getDate()) + '일 '+ (end_date.getHours()) +'시 ' + (end_date.getMinutes()) + '분' 
+				//end_date.toISOString().slice(0, 19).replace('T', ' ')
+				const message = start_vote(conversation_id, actions, vote_title, formatted_date)
 				await libKakaoWork.sendMessage(
 					message
 				)

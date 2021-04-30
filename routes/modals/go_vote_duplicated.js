@@ -7,7 +7,7 @@ go_vote_generator = (row) => {
 	  blocks: [
       {
 		  type: 'label',
-		  text: `*${row[0].vote_title}*`,
+		  text: `*${row[0].vote_title}*\n\n`,
 		  markdown: true
       }
 	  ]

@@ -7,7 +7,7 @@ closed_vote_generator = () => {
 		"blocks": [
     	{
     	  "type": "label",
-    	  "text": "종료된 투표입니다.",
+    	  "text": "종료된 투표입니다 🤭",
     	  "markdown": true
     	}
   		]
