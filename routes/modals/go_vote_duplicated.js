@@ -4,13 +4,7 @@ go_vote_generator = (row) => {
 	  accept: '확인',
 	  decline: '취소',
 	  value: 'do_vote',
-	  blocks: [
-      {
-		  type: 'label',
-		  text: `*${row[0].vote_title}*\n\n`,
-		  markdown: true
-      }
-	  ]
+	  blocks: [ ]
   }
   let i
   for (i = 0; i < row[0].choice_number; i++) {
