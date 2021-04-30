@@ -90,29 +90,29 @@
 한일석 팀원이 데이터베이스 연결을 맡아 해주시면서 수고해주셨습니다 👍
 
 ## 개발자 (가나다 순) 🙋🏻‍♂️🙋🏻‍♀️
-**고동천** 
+**고동천** [@cheon4050](https://github.com/cheon4050)
 - [x] message, modal block 을 사용하여 초반부 토대와 기본 기능 구현
 - [x] 챗봇의 작동 흐름 세부 결정
 
-**김태형**
+**김태형** [@Taehyeong Kim](https://github.com/softmare)
 - [x] 프로젝트의 토대가 되는 message와 modal block 작성
 - [x] 챗봇의 작동 흐름 세부 결정
 
-**김혜수** 
+**김혜수** [@h-yes-oo](https://github.com/h-yes-oo/)
 - [x] message와 modal 디자인, block kit 만들기
 - [x] 에러 수정 및 추가 api 구현 
 - [x] README 작성 
 
-**박홍빈** 
+**박홍빈** [@qkrghdqls1](https://github.com/qkrghdqls1)
 - [x] `sqlite3` , `nodejs` 기능 연결 쿼리 제작
 - [x] 중복 투표와 투표 마감 날짜 등 추가 기능 구현
 - [x] 에러 수정 및 추가적인 message, modal 작성
 
-**안성은**
+**안성은** [@ahnseongeun](https://github.com/ahnseongeun)
 - [x] 데이터베이스 테이블 설계
 - [x] [데이터베이스 확인하기 : 비밀번호 ww1vf0](https://aquerytool.com:443/aquerymain/index/?rurl=3155dc43-dcd1-43ef-8195-2b0c05fc6662)
 
-**한일석**
+**한일석** [@x2ever](https://github.com/x2ever)
 - [x] `sqlite3` 라이브러리를 이용하여 실제 서비스의 데이터를 데이터베이스에서 관리
 - [x] 투표 생성, 결과 조회, 종료 등 전반적인 기본 기능의 back-end 구현
 - [x] 기본 기능의 message와 modal의 `json` 파일 수정 및 추가 작성
